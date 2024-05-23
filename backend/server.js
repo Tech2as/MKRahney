@@ -52,6 +52,32 @@ app.post("/login", (req,res) => {
     });
 })
 
+app.post("/register-client", (req, res) => {
+    const nome = req.body.nome
+    const email = req.body.email
+    const telefone = req.body.telefone
+
+    const query = "INSERT INTO clientes (nome, email, telefone) VALUES (?, ?, ?)";
+
+    db.query(query, [nome, email, telefone], (err, result) => {
+        if (err) {
+            console.error("Error", err);
+            return res.status(500).json({ error: "Falha" });
+        }
+        res.status(201).json({ message: "Cliente registrado com sucesso"});
+    });
+})
+
+app.get("/search-client", (req, res) => {
+    const sql = 'SELECT nome, email, telefone FROM clientes';
+    db.query(sql, (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.json(results);
+    });
+});
+
 app.listen(3002, () =>{
     console.log("Rodando na porta 3002")
 }) 

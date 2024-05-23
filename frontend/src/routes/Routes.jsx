@@ -3,18 +3,22 @@ import Login from "../Login"
 import Cadastro from "../Cadastro"
 import Footer from "../components/template/Footer"
 import Header from "../components/template/Header"
+import Home from "../pages/Home"
+import Vendas from "../pages/Vendas"
 import Logo from "../components/template/Logo"
 import Main from "../components/template/Main"
 import Nav from "../components/template/Nav"
+import Clientes from "../pages/Clientes"
+import NovoClientes from "../pages/NovoClientes"
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
 
-function RoutesApp() {
-  return (
-    <Routes>
-        {/* <Route path="/" element={<Login/>}></Route> */}
+export default props =>
+      <Routes>
+        <Route path="/" element={<Home/>}></Route> 
+        <Route path="/novocliente" element={<NovoClientes/>}></Route>
         <Route path="/cadastro" element={<Cadastro/>}></Route>
-    </Routes>
-  )
-}
+        <Route path="/clientes" element={<Clientes/>}></Route>
+        <Route path="/vendas" element={<Vendas/>}></Route>
+      </Routes>
 
-export default RoutesApp
+

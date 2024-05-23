@@ -1,4 +1,203 @@
+main {
+    height: 100%;
+    width: 100%;
+}
 main > div {
     background-color: #FFF;
     box-shadow: 0px 0px 15px #0004;
+    height: 100%;
+    width: 100%;
+}
+
+.search-cliente {
+    display: flex;
+}
+
+.search-cliente input{
+    border: 1;
+    width: 420px;
+    padding: 10px;
+    font-size: 15px;
+    background-color: #fff;
+    border-radius: 10px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.search-cliente button {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.td-actions button {
+   margin-left: 8px;
+}
+
+.dashboard-main {
+    padding-top: 2%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.dashboard-start {
+    border-radius: 20px;
+    position: relative;
+    background-color: #5111C9;
+    color: #FFF;
+    width: 600px;
+    height: 150px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 0 10px 0 rgba(0, 0, 0, 0.12),
+    2px 0 10px 0 rgba(0, 0, 0, 0.9);
+}
+
+.dashboard-start p{
+    font-weight: bold;
+    padding-top: 5%;
+    padding-left: 15%;
+    font-size: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-data i{
+    padding-top: 2%;
+    padding-left: 4%;
+    height: 150px;
+    width: 20%;
+    font-size: 120px;
+    position: absolute;
+    background-color: #5E1BDC;
+    color: green;
+    box-shadow: 2px 0 10px 0 rgba(0, 0, 0, 0.12),
+    2px 0 10px 0 rgba(0, 0, 0, 0.9);
+}
+
+.dashboard-start-second {
+    border-radius: 20px;
+    position: relative;
+    background-color: #308758;
+    color: #FFF;
+    width: 600px;
+    height: 150px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 0 10px 0 rgba(0, 0, 0, 0.12),
+    2px 0 10px 0 rgba(0, 0, 0, 0.9);
+}
+
+.dashboard-start-second p{
+    font-weight: bold;
+    padding-top: 5%;
+    padding-left: 15%;
+    font-size: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-data-second i {
+    padding-top: 4%;
+    padding-left: 2%;
+    height: 150px;
+    width: 20%;
+    font-size: 100px;
+    position: absolute;
+    background-color: #048A42;
+    color: black;
+    box-shadow: 2px 0 10px 0 rgba(0, 0, 0, 0.12),
+    2px 0 10px 0 rgba(0, 0, 0, 0.9);
+}
+
+/* Terceiro */
+.dashboard-start-third {
+    position: absolute;
+    top: 300px; /* Ajuste a distância do rodapé conforme necessário */
+    border-radius: 20px;
+    position: relative;
+    background-color: #097C73;
+    color: #FFF;
+    width: 1200px;
+    height: 150px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 0 10px 0 rgba(0, 0, 0, 0.12),
+    2px 0 10px 0 rgba(0, 0, 0, 0.9);
+}
+
+.dashboard-start-third p{
+    font-weight: bold;
+    padding-top: 2%;
+    font-size: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-data-third i {
+    padding-top: 2%;
+    padding-left: 5%;
+    height: 150px;
+    width: 20%;
+    font-size: 100px;
+    position: absolute;
+    background-color: #20756E;
+    color: #0DFF32;
+    box-shadow: 2px 0 10px 0 rgba(0, 0, 0, 0.12),
+    2px 0 10px 0 rgba(0, 0, 0, 0.9);
+}
+
+/* Clientes */
+.container-new {
+    width: 100%; /* Ajuste conforme necessário */
+    display: flex;
+    justify-content: center; /* Centra o conteúdo horizontalmente */
+    margin-top: 5%;
+    height: 50vh; /* Faz com que o contêiner ocupe toda a altura da janela */
+}
+
+.content-new {
+    width: 100%; /* Ajuste conforme necessário */
+    max-width: 400px; /* Limite máximo de largura */
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+.form-profile {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-profile label {
+    margin-top: 10px;
+}
+
+.form-profile input {
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-profile button {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10%;
+}
+
+.form-profile button:hover {
+    background-color: #0056b3;
+}
+
+
+a {
+    text-decoration: none;
 }

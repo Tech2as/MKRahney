@@ -1,12 +1,12 @@
 import React from "react"
-import Header from'./Header'
+import Header from "./Header"
 import './Main.css'
 
 export default props =>
     <React.Fragment>
     <Header {...props} />
-    <main className="content container-fluid">
-       <div className="p-3 mt-3">
+    <main>
+       <div className="p-3">
             {props.children}
        </div>
     </main>

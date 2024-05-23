@@ -1,5 +1,6 @@
 header.header {
-    background-color: #FFF;
+    background-color: #1A5575;
+    color: #FFF;
     padding: 0 15px;
     overflow: hidden;
     white-space: nowrap;
@@ -7,7 +8,10 @@ header.header {
 }
 
 header.header h1{
-   font-size: 1.8em;
-   align-items: center;
-   justify-content: center;
+   font-size: 2.5em;
+}
+
+header.header i{
+    padding-right: 10px;
+    padding-top: 5px
 }
