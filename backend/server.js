@@ -52,6 +52,7 @@ app.post("/login", (req,res) => {
     });
 })
 
+// Clientes
 app.post("/register-client", (req, res) => {
     const nome = req.body.nome
     const email = req.body.email
@@ -69,7 +70,7 @@ app.post("/register-client", (req, res) => {
 })
 
 app.get("/search-client", (req, res) => {
-    const sql = 'SELECT id_clientes,nome, email, telefone FROM clientes';
+    const sql = 'SELECT * FROM clientes';
     db.query(sql, (err, results) => {
       if (err) {
         return res.status(500).send(err);
@@ -77,6 +78,46 @@ app.get("/search-client", (req, res) => {
       res.json(results);
     });
 });
+
+app.get("/get-client", (req, res) => {
+   const id = req.query.id;
+
+   const sql = 'SELECT * FROM clientes WHERE id_clientes = ?';
+   db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Erro na consulta SQL:', err); // Log para erro na consulta
+            return res.status(500).send(err);
+        }
+        res.json(results);
+    });
+});
+
+app.get("/get-delete-client", (req, res) => {
+    const id = req.query.id;
+    const sql = 'SELECT id_clientes FROM clientes WHERE id_clientes = ?';
+    
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Erro na consulta SQL:', err);
+            return res.status(500).send(err);
+        }
+        res.json(results);
+    });
+});
+
+app.post("/post-delete-client", (req, res) => {
+    const idDelete = req.body.idDelete
+
+    const sql = "DELETE FROM clientes WHERE id_clientes = ?";
+
+    db.query(sql, [idDelete], (err, result) => {
+        if (err) {
+            console.error("Error", err);
+            return res.status(500).json({ error: "Falha" });
+        }
+        res.status(201).json({ message: "Usuário deletado com sucesso!"});
+    });
+})
 
 // Vendas
 
@@ -96,6 +137,23 @@ app.post("/register-sale", (req, res) => {
     });
 })
 
+app.post("/update-client", (req, res) => {
+    const idCliente = req.body.idCliente
+    const nome = req.body.nome
+    const email = req.body.email
+    const telefone = req.body.telefone
+
+    const query = "UPDATE clientes SET nome = ?, email = ?, telefone = ? WHERE id_clientes = ?";
+
+    db.query(query, [nome, email, telefone, idCliente], (err, result) => {
+        if (err) {
+            console.error("Error", err);
+            return res.status(500).json({ error: "Falha" });
+        }
+        res.status(201).json({ message: "Usuário atualizado com sucesso"});
+    });
+})
+
 app.get("/search-sale", (req, res) => {
     const sql = 'SELECT * FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes';
     db.query(sql, (err, results) => {
@@ -108,8 +166,6 @@ app.get("/search-sale", (req, res) => {
 
 app.get("/get-sale", (req, res) => {
     const id = req.query.id;
-    //console.log(`ID recebido: ${id}`); // Log para verificar o ID recebido
-
     const sql = 'SELECT * FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes WHERE vendas.id = ?';
     
     db.query(sql, [id], (err, results) => {
@@ -117,10 +173,55 @@ app.get("/get-sale", (req, res) => {
             console.error('Erro na consulta SQL:', err); // Log para erro na consulta
             return res.status(500).send(err);
         }
-        console.log('Resultados da consulta:', results); // Log para resultados da consulta
+
         res.json(results);
     });
 });
+
+app.post("/update-sale", (req, res) => {
+    const clienteId = req.body.clienteId
+    const produto = req.body.produto
+    const valor = req.body.valor
+    const idVendas = req.body.idVendas
+
+    const query = "UPDATE vendas SET id_clientes = ?, produto = ?, valor = ? WHERE id = ?";
+
+    db.query(query, [clienteId, produto, valor, idVendas], (err, result) => {
+        if (err) {
+            console.error("Error", err);
+            return res.status(500).json({ error: "Falha" });
+        }
+        res.status(201).json({ message: "Venda registrada com sucesso"});
+    });
+})
+
+app.get("/get-delete", (req, res) => {
+    const id = req.query.id;
+    const sql = 'SELECT id FROM vendas WHERE id = ?';
+    
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Erro na consulta SQL:', err);
+            return res.status(500).send(err);
+        }
+        res.json(results);
+    });
+});
+
+app.post("/post-delete", (req, res) => {
+    const idDelete = req.body.idDelete
+
+    const sql = "DELETE FROM VENDAS WHERE id = ?";
+
+    db.query(sql, [idDelete], (err, result) => {
+        if (err) {
+            console.error("Error", err);
+            return res.status(500).json({ error: "Falha" });
+        }
+        res.status(201).json({ message: "Usuário deletado com sucesso!"});
+    });
+})
+
 app.listen(3002, () =>{
     console.log("Rodando na porta 3002")
 }) 

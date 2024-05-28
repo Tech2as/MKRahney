@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Main from "../components/template/Main"
 import Modal from "../components/template/Modal"
-import { useNavigate } from 'react-router-dom'
 import Axios from "axios"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as yup from "yup"
@@ -9,7 +8,6 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 const Vendas = () => {
-    const navigate = useNavigate();
 
     const [showGModal, setShowGModal] = useState(false);
     const handleOpenGModal = () => setShowGModal(true);
@@ -19,26 +17,23 @@ const Vendas = () => {
     const handleOpenModal = () => setShowModal(true);
     const handleCloseModal = () => setShowModal(false);
 
+    const [showDModal, setshowDModal] = useState(false);
+    const handleOpenDModal = () => setshowDModal(true);
+    const handleCloseDModal = () => setshowDModal(false);
+
     const [clientes, setClientes] = useState([]);
     const [vendas, setVendas] = useState([]);
-    const [gVendas, setGVendas] = useState({});
 
+    const [idVendas, setIdVendas] = useState('');
+    const [idDelete, setIdDelete] = useState('');
     const [cliente, setCliente] = useState('');
     const [produto, setProduto] = useState('');
     const [valor, setValor] = useState('');
-    
+    const reloadPage = () => {
+        window.location.reload();
+    };
 
-
-useEffect(() => {
-    Axios.get('http://localhost:3002/search-client')
-    .then(response => {
-        setClientes(response.data);
-    })
-    .catch(error => {
-    console.error('Houve um erro ao buscar os dados do cliente:', error);
-    });
-}, []);
-
+// para renderizar na tabela ao entrar na página
     useEffect(() => {
         Axios.get('http://localhost:3002/search-sale')
             .then(response => {
@@ -49,6 +44,15 @@ useEffect(() => {
             });
     }, []);
 
+useEffect(() => {
+    Axios.get('http://localhost:3002/search-client')
+    .then(response => {
+        setClientes(response.data);
+    })
+    .catch(error => {
+    console.error('Houve um erro ao buscar os dados do cliente:', error);
+    });
+}, []);
 
     const validationRegister = yup.object().shape({
         produto: yup.string().required(),
@@ -62,19 +66,21 @@ useEffect(() => {
             valor: values.valor
         }).then((response) => {
             toast.success("Venda registrado!");
-            handleCloseModal();
+            reloadPage()
         }).catch((error) => {
             toast.error("Erro ao registrar venda.");
             handleCloseModal();
         });
     }
+
+    // pegar os dados via ID para atualizar as vendas
     const handleClick = (event) => {
         const id = event.currentTarget.value;
 
         Axios.get(`http://localhost:3002/get-sale?id=${id}`)
             .then((response) => {
-                //setGVendas(response.data)
                 const sale = response.data[0];
+                setIdVendas(sale.id)
                 setCliente(sale.id_clientes)
                 setProduto(sale.produto)
                 setValor(sale.valor)
@@ -85,7 +91,52 @@ useEffect(() => {
                 console.error('Erro ao fazer a solicitação GET:', error);
             });
     };
+
+// salvar as mudanças ao atualizar as vendas
+    const handleUpdate = (values) => {
+        Axios.post("http://localhost:3002/update-sale", {
+            idVendas: values.idVendas,
+            clienteId: values.cliente,
+            produto: values.produto,
+            valor: values.valor
+        }).then((response) => {
+            toast.success("Venda atualizada!");
+            reloadPage()
+        }).catch((error) => {
+            toast.error("Erro ao atualizar venda.");
+            handleCloseGModal();
+        });
+    }
+
+// pegar os dados para deletar
+const handleClickDel = (event) => {
+    const id = event.currentTarget.value;
+
+Axios.get(`http://localhost:3002/get-delete?id=${id}`)
+    .then((response) => {
+    const sale = response.data[0];
+    setIdDelete(sale.id)
     
+    handleOpenDModal()
+    })
+    .catch((error) => {
+    console.error('Erro ao fazer a solicitação GET:', error);
+    });
+};
+
+// deletar a venda
+const handleClickDelP = (values) => {
+    Axios.post("http://localhost:3002/post-delete", {
+        idDelete: values.idDelete
+
+    }).then((response) => {
+        toast.success("Venda deletada!");
+        reloadPage()
+    }).catch((error) => {
+        toast.error("Erro ao deletar venda.");
+        handleCloseDModal();
+    });
+}
     return (
 
         <Main icon="money" title="Vendas">
@@ -122,7 +173,7 @@ useEffect(() => {
                                     <i className="fa fa-pencil"></i>
                                 </button>
 
-                                <button className="btn btn-danger">
+                                <button className="btn btn-danger" value={vendas.id} onClick={handleClickDel}>
                                     <i className="fa fa-trash"></i>
                                 </button>
                             </td>
@@ -132,20 +183,28 @@ useEffect(() => {
 
             </table>
 
+{/* Modal do Editar */}
         <Modal show={showGModal} onClose={handleCloseGModal}>
                 <div className="modal-content2">
-                    <Formik initialValues={{ cliente: cliente, produto: produto, valor: valor }}
-                        enableReinitialize={true} onSubmit="">
+                    <Formik initialValues={{ idVendas: idVendas, 
+                    cliente: cliente, 
+                    produto: produto, 
+                    valor: valor }}
+                    enableReinitialize={true} onSubmit={handleUpdate}>
                         <Form action="">
                             <h2>Editar Venda</h2>
                             <div className="modal-inside">
                                 <div className="form-group1">
                                 <Field as="select" name="cliente">
-                                {clientes.map((cliente, index) => (
-                                    <option key={index}>{cliente.nome}</option>
-                                ))}                                                                     
+                                    {clientes.map((cliente, index) => (
+                                    <option key={index} value={cliente.id_clientes}>
+                                    {cliente.nome}
+                                    </option>
+                                    ))}
                                 </Field>
                                 </div>
+
+                                <Field name="idVendas" type="hidden"/>
 
                                 <div className="form-group1">
                                     <label>Produto:</label>                              
@@ -163,6 +222,25 @@ useEffect(() => {
                 </div>
             </Modal>
 
+{/* Modal Delete Vendas */}
+            <Modal show={showDModal} onClose={handleCloseDModal}>
+                <div className="modal-content2">
+                <Formik initialValues={{idDelete: idDelete}}  
+                enableReinitialize={true} onSubmit={handleClickDelP}>
+                    <Form action="">
+                        <h2>Confirmação</h2>
+
+                        <div className="form-group1">
+                        <h3>Tem  certeza que deseja excluir o usuário?</h3>                              
+                        </div>
+                        <Field name="idDelete" type="hidden"/>
+                        <button type="submit" className="btn btn-danger">Sim</button>
+                    </Form>
+                </Formik>
+                </div>
+            </Modal>
+
+{/* Modal do Nova Venda */}
             <Modal show={showModal} onClose={handleCloseModal}>
                 <div className="modal-content2">
                     <Formik initialValues={{}} onSubmit={handleSubmit}
@@ -174,7 +252,7 @@ useEffect(() => {
                                     <label>Cliente:</label>
                                     <Field as="select" name="cliente">
                                         {clientes.map((cliente, index) => (
-                                            <option key={index} value={cliente.id}>{cliente.nome}</option>
+                                            <option key={index} value={cliente.id_clientes}>{cliente.nome}</option>
                                         ))}
                                     </Field>
                                 </div>

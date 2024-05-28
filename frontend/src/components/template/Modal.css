@@ -41,6 +41,14 @@
   align-items: center;
 }
 
+.modal-content2 h3 {
+  padding-top: 2%;
+  padding-bottom: 2%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 
 .form-group1 {
   display: flex;
