@@ -69,7 +69,7 @@ app.post("/register-client", (req, res) => {
 })
 
 app.get("/search-client", (req, res) => {
-    const sql = 'SELECT nome, email, telefone FROM clientes';
+    const sql = 'SELECT id_clientes,nome, email, telefone FROM clientes';
     db.query(sql, (err, results) => {
       if (err) {
         return res.status(500).send(err);
@@ -78,6 +78,49 @@ app.get("/search-client", (req, res) => {
     });
 });
 
+// Vendas
+
+app.post("/register-sale", (req, res) => {
+    const clienteId = req.body.clienteId
+    const produto = req.body.produto
+    const valor = req.body.valor
+
+    const query = "INSERT INTO vendas (id_clientes, produto, valor) VALUES (?, ?, ?)";
+
+    db.query(query, [clienteId, produto, valor], (err, result) => {
+        if (err) {
+            console.error("Error", err);
+            return res.status(500).json({ error: "Falha" });
+        }
+        res.status(201).json({ message: "Venda registrada com sucesso"});
+    });
+})
+
+app.get("/search-sale", (req, res) => {
+    const sql = 'SELECT * FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes';
+    db.query(sql, (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.json(results);
+    });
+});
+
+app.get("/get-sale", (req, res) => {
+    const id = req.query.id;
+    //console.log(`ID recebido: ${id}`); // Log para verificar o ID recebido
+
+    const sql = 'SELECT * FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes WHERE vendas.id = ?';
+    
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Erro na consulta SQL:', err); // Log para erro na consulta
+            return res.status(500).send(err);
+        }
+        console.log('Resultados da consulta:', results); // Log para resultados da consulta
+        res.json(results);
+    });
+});
 app.listen(3002, () =>{
     console.log("Rodando na porta 3002")
 }) 
