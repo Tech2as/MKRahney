@@ -6,7 +6,7 @@ export default props =>
     <React.Fragment>
     <Header {...props} />
     <main>
-       <div className="p-3">
+       <div className="">
             {props.children}
        </div>
     </main>

@@ -29,23 +29,64 @@ const Vendas = () => {
     const [cliente, setCliente] = useState('');
     const [produto, setProduto] = useState('');
     const [valor, setValor] = useState('');
+
+    // paginação
+    const [page, setPage] = useState(1);
+    const [limit] = useState(5);
+    const [total, setTotal] = useState(0);
+    //const totalPages = Math.ceil(totalItems / itemsPerPage);
+
     const reloadPage = () => {
         window.location.reload();
     };
-
-// para renderizar na tabela ao entrar na página
-    useEffect(() => {
-        Axios.get('http://localhost:3002/search-sale')
-            .then(response => {
-                setVendas(response.data);
-            })
-            .catch(error => {
-                console.error('Houve um erro ao buscar os dados da venda:', error);
-            });
-    }, []);
+const [searchTerm, setSearchTerm] = useState('');
 
 useEffect(() => {
-    Axios.get('http://localhost:3002/search-client')
+    fetchVendas();
+}, [page]);
+
+const fetchVendas = async () => {
+    try {
+        const response = await Axios.get('http://localhost:3002/search-sale', {
+            params: { page, limit }
+        });
+        setVendas(response.data.data);
+        setTotal(response.data.total);
+    } catch (error) {
+        console.error("Erro ao buscar vendas:", error);
+    }
+};
+
+      const handlePageChange = (newPage) => {
+        setPage(newPage);
+    };
+    
+    const handleInputChange = (event, handleChange) => {
+        handleChange(event);
+        if (event.target.value === '') {
+          fetchVendas();
+        }
+      };
+    
+      const handleSearchSubmit = (values) => {
+        if (!values.searchTerm) {
+          fetchVendas();
+        } else {
+          Axios.get('http://localhost:3002/search-sale-query', {
+            params: { query: values.searchTerm }
+          })
+          .then(response => {
+            setVendas(response.data);
+          })
+          .catch(error => {
+            console.error('Houve um erro ao buscar os dados do cliente:', error);
+          });
+        }
+      }
+
+
+useEffect(() => {
+    Axios.get('http://localhost:3002/search-client-invendas')
     .then(response => {
         setClientes(response.data);
     })
@@ -140,6 +181,7 @@ const handleClickDelP = (values) => {
     return (
 
         <Main icon="money" title="Vendas">
+            <div className="p-3">
             <ToastContainer />
             <div className="d-flex justify-content-between">
                 <button className="btn btn-success" onClick={handleOpenModal}>
@@ -148,9 +190,28 @@ const handleClickDelP = (values) => {
                 </button>
 
                 <div className="search-cliente">
-                    <input className="mr-sm-2" type="search" placeholder="Pesquise aqui..." aria-label="Search" />
-                    <button className="btn btn-outline-success my-2 my-sm-0" type="submit">Pesquisar</button>
-                </div>
+    <Formik
+        initialValues={{ searchTerm: '' }}
+        onSubmit={handleSearchSubmit}
+    >
+        {({ values, handleChange }) => (
+            <Form className="search-form">
+                <Field
+                    className="search-input"
+                    type="search"
+                    placeholder="Pesquise aqui..."
+                    aria-label="Search"
+                    name="searchTerm"
+                    value={values.searchTerm}
+                    onChange={(event) => handleInputChange(event, handleChange)}
+                />
+                <button className="search-button" type="submit">
+                    Pesquisar
+                </button>
+            </Form>
+        )}
+    </Formik>
+</div>
             </div>
 
             <table className="table table-bordered mt-4">
@@ -163,25 +224,35 @@ const handleClickDelP = (values) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {vendas.map((vendas, index) => (
+                    {vendas.map((venda, index) => (
                         <tr key={index}>
-                            <td>{vendas.nome}</td>
-                            <td>{vendas.produto}</td>
-                            <td>R${vendas.valor}</td>
+                            <td>{venda.nome}</td>
+                            <td>{venda.produto}</td>
+                            <td>R${venda.valor}</td>
                             <td className="td-actions">
-                                <button className="btn btn-warning" value={vendas.id} onClick={handleClick}>
+                                <button className="btn btn-warning" value={venda.id} onClick={handleClick}>
                                     <i className="fa fa-pencil"></i>
                                 </button>
-
-                                <button className="btn btn-danger" value={vendas.id} onClick={handleClickDel}>
+                                <button className="btn btn-danger" value={venda.id} onClick={handleClickDel}>
                                     <i className="fa fa-trash"></i>
                                 </button>
                             </td>
                         </tr>
                     ))}
                 </tbody>
-
             </table>
+
+            <div className="pagination">
+                {Array.from({ length: Math.ceil(total / limit) }, (_, index) => (
+                    <button
+                        key={index}
+                        className={`page-link ${index + 1 === page ? 'active' : ''}`}
+                        onClick={() => handlePageChange(index + 1)}
+                    >
+                        {index + 1}
+                    </button>
+                ))}
+            </div>
 
 {/* Modal do Editar */}
         <Modal show={showGModal} onClose={handleCloseGModal}>
@@ -251,6 +322,7 @@ const handleClickDelP = (values) => {
                                 <div className="form-group1">
                                     <label>Cliente:</label>
                                     <Field as="select" name="cliente">
+                                    <option value="">Selecione um cliente</option>
                                         {clientes.map((cliente, index) => (
                                             <option key={index} value={cliente.id_clientes}>{cliente.nome}</option>
                                         ))}
@@ -273,6 +345,9 @@ const handleClickDelP = (values) => {
                     </Formik>
                 </div>
             </Modal>
+
+
+            </div>
         </Main>
     );
 };

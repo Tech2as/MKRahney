@@ -2,6 +2,7 @@ const express = require("express");
 const mysql = require("mysql");
 const app = express();
 const cors = require('cors')
+const nodemailer = require("nodemailer");
 
 const db = mysql.createPool({
     host: "localhost",
@@ -69,13 +70,39 @@ app.post("/register-client", (req, res) => {
     });
 })
 
-app.get("/search-client", (req, res) => {
+app.get("/search-client-invendas", (req, res) => {
     const sql = 'SELECT * FROM clientes';
     db.query(sql, (err, results) => {
       if (err) {
         return res.status(500).send(err);
       }
       res.json(results);
+    });
+});
+
+app.get("/search-client", (req, res) => {
+    const { page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const sql = 'SELECT * FROM clientes LIMIT ? OFFSET ?';
+    db.query(sql, [parseInt(limit), parseInt(offset)], (err, results) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+
+        const countSql = 'SELECT COUNT(*) AS count FROM clientes';
+        db.query(countSql, (countErr, countResults) => {
+            if (countErr) {
+                return res.status(500).send(countErr);
+            }
+
+            res.json({
+                data: results,
+                total: countResults[0].count,
+                page: parseInt(page),
+                limit: parseInt(limit)
+            });
+        });
     });
 });
 
@@ -119,6 +146,30 @@ app.post("/post-delete-client", (req, res) => {
     });
 })
 
+app.get("/search-client-query", (req, res) => {
+    const searchTerm = req.query.query;
+
+    let sql;
+    let params = [];
+  
+    if (searchTerm) {
+      sql = 'SELECT * FROM `clientes` WHERE nome LIKE ? OR email LIKE ?';
+      const searchQuery = `%${searchTerm}%`;
+      params = [searchQuery, searchQuery];
+    } else {
+      sql = 'SELECT * FROM `clientes`';
+    }
+  
+    db.query(sql, params, (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.json(results);
+    });
+  });
+
+
+
 // Vendas
 
 app.post("/register-sale", (req, res) => {
@@ -155,12 +206,29 @@ app.post("/update-client", (req, res) => {
 })
 
 app.get("/search-sale", (req, res) => {
-    const sql = 'SELECT * FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes';
-    db.query(sql, (err, results) => {
-      if (err) {
-        return res.status(500).send(err);
-      }
-      res.json(results);
+    const { page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const sql = `SELECT * FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes LIMIT ? OFFSET ?`;
+    const countSql = 'SELECT COUNT(*) AS total FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes';
+
+    db.query(sql, [parseInt(limit), parseInt(offset)], (err, results) => {
+        if (err) {
+            return res.status(500).send(err);
+        }
+
+        db.query(countSql, (countErr, countResults) => {
+            if (countErr) {
+                return res.status(500).send(countErr);
+            }
+
+            res.json({
+                data: results,
+                total: countResults[0].total,
+                page: parseInt(page),
+                limit: parseInt(limit)
+            });
+        });
     });
 });
 
@@ -221,6 +289,100 @@ app.post("/post-delete", (req, res) => {
         res.status(201).json({ message: "Usuário deletado com sucesso!"});
     });
 })
+
+app.get("/search-sale-query", (req, res) => {
+    const searchTerm = req.query.query;
+
+    let sql;
+    let params = [];
+  
+    if (searchTerm) {
+      sql = 'SELECT * FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes WHERE clientes.nome LIKE ? OR vendas.produto LIKE ?';
+      const searchQuery = `%${searchTerm}%`;
+      params = [searchQuery, searchQuery];
+    } else {
+      sql = 'SELECT * FROM vendas JOIN clientes ON vendas.id_clientes = clientes.id_clientes';
+    }
+  
+    db.query(sql, params, (err, results) => {
+      if (err) {
+        return res.status(500).send(err);
+      }
+      res.json(results);
+    });
+  });
+
+// email
+app.post("/send-email", (req, res) => {
+    const { email, mensagem } = req.body;
+
+    if (!email || !mensagem) {
+        return res.status(400).json({ error: 'Email e mensagem são obrigatórios.' });
+    }
+
+    const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: 'joaoacademicotech@gmail.com',
+            pass: 'melm qcxb vgas lslm',
+        },
+    });
+
+    const mailOptions = {
+        from: 'joaoacademicotech@gmail.com',
+        to: email,
+        subject: "Mensagem da MK Rahney",
+        text: mensagem,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).json({ error: 'Erro ao enviar o email.' });
+        } else {
+            return res.status(200).json({ message: 'Email enviado com sucesso.' });
+        }
+    });
+});
+
+// Rotas do home
+
+app.get("/get-vendas-home", (req, res) => {
+    const sql = 'SELECT COUNT(*) AS count FROM vendas';
+    
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Erro na consulta SQL:', err);
+            return res.status(500).send(err);
+        }
+        res.json(results[0]);  
+    });
+});
+
+app.get("/get-clientes-home", (req, res) => {
+    const sql = 'SELECT COUNT(*) AS count FROM clientes';
+    
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Erro na consulta SQL:', err);
+            return res.status(500).send(err);
+        }
+        res.json(results[0]); 
+    });
+});
+
+app.get("/get-receita-home", (req, res) => {
+    const sql = 'SELECT SUM(valor) AS valor FROM vendas';
+    
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Erro na consulta SQL:', err);
+            return res.status(500).send(err);
+        }
+        res.json(results[0]); 
+    });
+});
 
 app.listen(3002, () =>{
     console.log("Rodando na porta 3002")

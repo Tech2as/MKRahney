@@ -15,5 +15,9 @@ export default props =>
             <Link to="/vendas">
                 <i className="fa fa-money"></i> Vendas
             </Link>
+
+            <Link to="/email">
+            <i class="fa fa-envelope" aria-hidden="true"></i> Email
+            </Link>
         </nav>
     </aside>

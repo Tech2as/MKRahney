@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import {  ToastContainer, toast  } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { Formik, Form, Field, ErrorMessage} from "formik"
+import InputMask from 'react-input-mask';
 import * as yup from "yup"
 import Axios from "axios"
 
@@ -31,6 +32,7 @@ const handleSubmit = (values) => {
 
 return (
 <Main icon="money" title="Novos clientes">
+    <div className="p-3">
     <ToastContainer />
     <div className="container-new">
         <div className="content-new">
@@ -46,13 +48,23 @@ return (
                         <ErrorMessage component="span" className="text-danger" name="email"/>
 
                     <label>Telefone:</label>
-                        <Field type="text" name="telefone"/>
+                        <Field type="text" name="telefone">
+                                {({ field }) => (
+                            <InputMask
+                                {...field}
+                                mask="(99) 99999-9999"
+                                placeholder="(00) 00000-0000"
+                                className="form-control"
+                            />
+                                )}
+                        </Field>
                         <ErrorMessage component="span" className="text-danger" name="telefone"/>
 
                         <button type="submit">Registrar</button>                      
                     </Form>
                 </Formik>
             </div>
+    </div>
     </div>
 </Main>
 );

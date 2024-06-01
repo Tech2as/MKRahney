@@ -10,6 +10,7 @@ import Main from "../components/template/Main"
 import Nav from "../components/template/Nav"
 import Clientes from "../pages/Clientes"
 import NovoClientes from "../pages/NovoClientes"
+import Email from '../pages/Email'
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
 
 export default props =>
@@ -19,6 +20,7 @@ export default props =>
         <Route path="/cadastro" element={<Cadastro/>}></Route>
         <Route path="/clientes" element={<Clientes/>}></Route>
         <Route path="/vendas" element={<Vendas/>}></Route>
+        <Route path="/email" element={<Email/>}></Route>
       </Routes>
 
 

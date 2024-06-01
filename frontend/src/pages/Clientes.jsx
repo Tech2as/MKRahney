@@ -4,6 +4,7 @@ import { Link } from "react-router-dom"
 import Modal from "../components/template/Modal"
 import Axios from "axios"
 import { Formik, Form, Field, ErrorMessage } from "formik"
+import InputMask from 'react-input-mask';
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -11,6 +12,11 @@ import 'react-toastify/dist/ReactToastify.css'
 const Clientes = () => {
     // array do map
     const [clientes, setClientes] = useState([]);
+
+    const [page, setPage] = useState(1);
+    const [limit] = useState(5);
+    const [total, setTotal] = useState(0);
+
 
     const [idCliente, setIdCliente] = useState('');
     const [nome, setNome] = useState('');
@@ -33,16 +39,49 @@ const Clientes = () => {
         window.location.reload();
     };
 
-// carregar os clientes na tabela ao entrar na page
+const [searchTerm, setSearchTerm] = useState('');
 useEffect(() => {
-Axios.get('http://localhost:3002/search-client')
-    .then(response => {
+    fetchClientes();
+}, [page]);
+
+
+const fetchClientes = async () => {
+    try {
+        const res = await Axios.get('http://localhost:3002/search-client', { params: { page, limit } });
+        setClientes(res.data.data);
+        setTotal(res.data.total);
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+};
+
+const handlePageChange = (newPage) => {
+    setPage(newPage);
+};
+
+  const handleInputChange = (event, handleChange) => {
+    handleChange(event);
+    if (event.target.value === '') {
+        fetchClientes();
+    }
+  };
+
+  const handleSearchSubmit = (values) => {
+    if (!values.searchTerm) {
+        fetchClientes();
+    } else {
+      Axios.get('http://localhost:3002/search-client-query', {
+        params: { query: values.searchTerm }
+      })
+      .then(response => {
         setClientes(response.data);
-    })
-    .catch(error => {
+      })
+      .catch(error => {
         console.error('Houve um erro ao buscar os dados do cliente:', error);
-    });
-}, []);
+      });
+    }
+  }
+
 
 // pegar os dados via ID para atualizar as vendas
 const handleClick = (event) => {
@@ -108,8 +147,9 @@ const handleClickDelP = (values) => {
     });
 }
     return (
-        <Main icon="users" title="Clientes">
-<ToastContainer />
+<Main icon="users" title="Clientes">
+    <div class="p-3">
+    <ToastContainer />
             <div className="d-flex justify-content-between">
                 <Link to="/novocliente" className="btn btn-success">
                     <i className="fa fa-plus-square px-2 pt-2"></i>
@@ -117,11 +157,29 @@ const handleClickDelP = (values) => {
                 </Link>
 
                 <div className="search-cliente">
-                    <input className="mr-sm-2" type="search" placeholder="Pesquise aqui..." aria-label="Search" />
-                    <button className="btn btn-outline-success my-2 my-sm-0" type="submit">Pesquisar</button>
-                </div>
+    <Formik
+        initialValues={{ searchTerm: '' }}
+        onSubmit={handleSearchSubmit}
+    >
+        {({ values, handleChange }) => (
+            <Form className="search-form">
+                <Field
+                    className="search-input"
+                    type="search"
+                    placeholder="Pesquise aqui..."
+                    aria-label="Search"
+                    name="searchTerm"
+                    value={values.searchTerm}
+                    onChange={(event) => handleInputChange(event, handleChange)}
+                />
+                <button className="search-button" type="submit">
+                    Pesquisar
+                </button>
+            </Form>
+        )}
+    </Formik>
+</div>
             </div>
-
             <table className="table table-bordered mt-4">
                 <thead>
                     <tr>
@@ -141,7 +199,6 @@ const handleClickDelP = (values) => {
                                 <button className="btn btn-warning" value={cliente.id_clientes} onClick={handleClick}>
                                     <i className="fa fa-pencil"></i>
                                 </button>
-
                                 <button className="btn btn-danger" value={cliente.id_clientes} onClick={handleClickDel}>
                                     <i className="fa fa-trash"></i>
                                 </button>
@@ -150,6 +207,17 @@ const handleClickDelP = (values) => {
                     ))}
                 </tbody>
             </table>
+            <div className="pagination">
+                {Array.from({ length: Math.ceil(total / limit) }, (_, index) => (
+                    <button
+                        key={index}
+                        className={`page-link ${index + 1 === page ? 'active' : ''}`}
+                        onClick={() => handlePageChange(index + 1)}
+                    >
+                        {index + 1}
+                    </button>
+                ))}
+            </div>
 
 {/* Modal Editar Clientes */}
 <Modal show={showGModal} onClose={handleCloseGModal}>
@@ -176,7 +244,16 @@ const handleClickDelP = (values) => {
 
                     <div className="form-group1">
                         <label>Telefone:</label>     
-                        <Field name="telefone" type="text" />                              
+                        <Field name="telefone" type="text" >   
+                                {({ field }) => (
+                            <InputMask
+                                {...field}
+                                mask="(99) 99999-9999"
+                                placeholder="(00) 00000-0000"
+                                className="form-control"
+                            />
+                        )}      
+                        </Field>                     
                     </div>
                     <button type="submit" className="btn btn-success">Salvar</button>
                 </div>
@@ -203,8 +280,8 @@ const handleClickDelP = (values) => {
         </Formik>
     </div>
 </Modal>
-            
-        </Main>
+</div>           
+</Main>
 
     );
 };
