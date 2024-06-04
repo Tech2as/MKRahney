@@ -150,7 +150,7 @@ const handleClickDelP = (values) => {
 <Main icon="users" title="Clientes">
     <div class="p-3">
     <ToastContainer />
-            <div className="d-flex justify-content-between">
+            <div className="d-flex justify-content-between flex-trick">
                 <Link to="/novocliente" className="btn btn-success">
                     <i className="fa fa-plus-square px-2 pt-2"></i>
                     Novo cliente

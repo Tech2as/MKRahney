@@ -3,6 +3,8 @@ const mysql = require("mysql");
 const app = express();
 const cors = require('cors')
 const nodemailer = require("nodemailer");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const db = mysql.createPool({
     host: "localhost",
@@ -13,45 +15,91 @@ const db = mysql.createPool({
 
 app.use(express.json())
 app.use(cors())
+const SECRET_KEY = 'teste';
+// Login e cadastro
 
+// Rota de registro
 app.post('/registro', (req, res) => {
-    const nome = req.body.nome
-    const email = req.body.email
-    const senha = req.body.senha
+    const { nome, email, senha } = req.body;
+    const hashedPassword = bcrypt.hashSync(senha, 8);
 
-    db.query("SELECT * FROM usuario WHERE email= ?", [email], 
-    (err,result) => {
-        if(err) {
-            res.send(err)
+    db.query(
+        'INSERT INTO usuario (nome, email, senha) VALUES (?, ?, ?)',
+        [nome, email, hashedPassword],
+        (err, results) => {
+            if (err) {
+                console.error("Erro no servidor durante o registro:", err);
+                return res.status(500).send({ success: false, message: 'Erro no servidor.' });
+            }
+            res.status(201).send({ success: true, message: 'Usuário registrado com sucesso!' });
         }
-        if(result.length == 0) {
-            db.query("INSERT INTO usuario (nome, email, senha) VALUES (?, ?, ?)", [nome, email, senha], (err, response) =>{
-                if(err) {
-                    res.send(err)
-                }
-                res.send({msg: "Cadastrado com sucesso"})
-            })
-        }else {
-            res.send({msg: "Usuário já cadastrado"})
+    );
+});
+
+// Rota de login
+app.post('/login', (req, res) => {
+    const { email, senha } = req.body;
+
+    db.query('SELECT * FROM usuario WHERE email = ?', [email], (err, results) => {
+        if (err) {
+            console.error("Erro no servidor:", err);
+            return res.status(500).send('Erro no servidor.');
         }
+        if (results.length === 0) {
+            return res.status(404).send('Usuário não encontrado.');
+        }
+
+        const user = results[0];
+        const passwordIsValid = bcrypt.compareSync(senha, user.senha);
+        if (!passwordIsValid) {
+            return res.status(401).send({ auth: false, token: null });
+        }
+
+        const token = jwt.sign({ id: user.id }, SECRET_KEY, { expiresIn: 86400 }); // 24 horas
+        res.status(200).send({ auth: true, token: token });
     });
-})
+});
 
-app.post("/login", (req,res) => {
-    const email = req.body.email
-    const senha = req.body.senha
+const verifyJWT = (req, res, next) => {
+    const token = req.headers['x-access-token'];
+    if (!token) {
+        return res.status(403).send({ auth: false, message: 'Nenhum token fornecido.' });
+    }
 
-    db.query("SELECT * FROM usuario WHERE email = ? AND senha = ?", [email, senha], (err, result) => {
-        if(err) {
-            res.send(err)
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(500).send({ auth: false, message: 'Falha ao autenticar token.' });
         }
-       if(result.length > 0) {
-            res.send({msg: "Usuário logado com sucesso"})
-       } else {
-            res.send({msg: "Usuário não encontrado"})
-       }
+        req.userId = decoded.id;
+        next();
     });
-})
+};
+
+
+// Rota protegida de exemplo
+app.get('/me', (req, res) => {
+    const token = req.headers['x-access-token'];
+    if (!token) {
+        return res.status(401).send({ auth: false, message: 'Token não fornecido.' });
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(500).send({ auth: false, message: 'Falha na autenticação do token.' });
+        }
+
+        db.query('SELECT * FROM usuario WHERE id = ?', [decoded.id], (err, results) => {
+            if (err) {
+                return res.status(500).send('Erro no servidor.');
+            }
+            if (results.length === 0) {
+                return res.status(404).send('Usuário não encontrado.');
+            }
+
+            res.status(200).send(results[0]);
+        });
+    });
+});
 
 // Clientes
 app.post("/register-client", (req, res) => {

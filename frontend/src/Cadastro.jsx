@@ -5,26 +5,32 @@ import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import Axios from "axios"
 
-function Cadastro() {
-const handleSubmit = (values) => {
-    Axios.post("http://localhost:3002/registro", {
+const Cadastro = ({ onSignup }) => {
+    const handleSignupClick = (values) => {
+      Axios.post("http://localhost:3002/registro", {
         nome: values.nome,
         email: values.email,
         senha: values.senha
-    }).then((response) => {
-        console.log(response)
-    })
-}
-
-const validationRegister = yup.object().shape({
-    nome: yup.string().required("Este campo é obrigatório"),
-    email: yup.string().email("Não é um email").required("Este campo é obrigatório"),
-    senha: yup.string().min(5,"A senha deve ter 5 caracteres").required("Este campo é obrigatório")
-})
+      }).then((response) => {
+        if (response.data.success) {
+          onSignup();
+        } else {
+          alert("Cadastro falhou, por favor, tente novamente");
+        }
+      }).catch((error) => {
+        console.error("Houve um erro durante o cadastro:", error);
+      });
+    };
+  
+    const validationRegister = yup.object().shape({
+      nome: yup.string().required("Este campo é obrigatório"),
+      email: yup.string().email("Não é um email válido").required("Este campo é obrigatório"),
+      senha: yup.string().min(5, "A senha deve ter pelo menos 5 caracteres").required("Este campo é obrigatório")
+    });
     return(
         <div className="d-flex justify-content-center align-items-center bg-primary vh-100">
             <div className="bg-white p-3 rounded w-25">
-            <Formik initialValues={{}} onSubmit={handleSubmit}
+            <Formik initialValues={{}} onSubmit={handleSignupClick}
             validationSchema={validationRegister}> 
                 <Form action="" >
                     <h2 className="d-flex justify-content-center align-items-center">Sistema de Cadastro</h2>
